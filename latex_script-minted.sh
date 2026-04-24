@@ -8,6 +8,18 @@ pdflatex_status=$?
 
 if grep -Fq '%%%' "$TEX_FILE"; then #If %%% was written to go to error-display mode
     pdflatex -interaction=nonstopmode "$TEX_FILE"
+    if grep -Fq '%%%%' "$TEX_FILE"; then
+        konsole --noclose -e bash -c "less -R '$TEX_FILE'"
+    fi
+    
+elif grep -Fq '%minted' "$TEX_FILE" ; then
+    TEX_MINTED="$TEX_FILE"
+    sed -i '/\\displaystyle/{N;s/\\displaystyle\n//;}' "$TEX_MINTED"
+    sed -i '/%minted/{N;s/%minted//;}' "$TEX_MINTED"
+    sed -z -E 's/\(\n[ \t]+/\begin{lstlisting}\n/g' -i "$TEX_MINTED"
+    sed -i 's/\\)/\\end{lstlisting}/g' "$TEX_MINTED"
+    sed -i 's/0.999\\maxdimen/15cm/g' "$TEX_MINTED"
+    pdflatex -interaction=nonstopmode "$TEX_MINTED"
 
 elif grep -Fq '%F' "$TEX_FILE" && [ "$pdflatex_status" -ne 0 ]; then #If %F was written go to fast compile mode
     echo "Last valid version of the formula :" > "$TEMP_VALID_TEX"
