@@ -25,9 +25,7 @@ elif [ "$pdflatex_status" -ne 0 ]; then # If the compilation contained errors an
 
     # modify the original (compiled) file to add the error message
     #See the note and modify accordingly
-    sed -i '29a\
-    {\\color{red} \\text{ Erreur \\LaTeX }}
-    ' "$TEX_FILE"
+    awk 'prev && /\\\)/ { printf "%s%s\n", prev, " {\\color{red} \\text{ Erreur \\LaTeX }}"; print; prev=""; next } { if (prev) print prev; prev=$0 } END { if (prev) print prev }' "$TEX_FILE" > "$TEX_FILE.tmp" && mv "$TEX_FILE.tmp" "$TEX_FILE"
 
     # Recompile the original (errorless) file to show an error message
     pdflatex -interaction=nonstopmode "$TEX_FILE"
