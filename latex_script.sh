@@ -8,6 +8,9 @@ pdflatex_status=$?
 
 if grep -Fq '%%%' "$TEX_FILE"; then #If %%% was written to go to error-display mode
     pdflatex -interaction=nonstopmode "$TEX_FILE"
+    if grep -Fq '%%%%' "$TEX_FILE"; then
+        konsole --noclose -e bash -c "less -R '$TEX_FILE'"
+    fi
 
 elif grep -Fq '%F' "$TEX_FILE" && [ "$pdflatex_status" -ne 0 ]; then #If %F was written go to fast compile mode
     echo "Last valid version of the formula :" > "$TEMP_VALID_TEX"
