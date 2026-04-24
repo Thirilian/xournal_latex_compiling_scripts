@@ -28,6 +28,20 @@ elif grep -Fq '%F' "$TEX_FILE" && [ "$pdflatex_status" -ne 0 ]; then #If %F was 
     # Compile the temporary file ignoring errors
     pdflatex -interaction=nonstopmode -jobname=last_valid "$TEMP_VALID_TEX"
 
+    # if no PDF output was produced, notify the user and compile a message instead of the formula
+    if [ ! -f "${TEX_FILE%.tex}.pdf" ]; then
+        FALLBACK_TEX="$(mktemp --suffix=.tex)"
+        cat > "$FALLBACK_TEX" <<EOF
+        \documentclass{standalone}
+        \usepackage{xcolor}
+        \begin{document}
+        {\Huge\color[RGB]{0, 150, 0}{Invalid file (forgotten \})}}
+        \end{document}
+EOF
+        pdflatex -interaction=nonstopmode -jobname=tex "$FALLBACK_TEX"
+        rm "$FALLBACK_TEX"
+    fi
+    
     # Clean up the temporary file
     rm "$TEMP_VALID_TEX"
 
