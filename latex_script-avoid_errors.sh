@@ -8,7 +8,7 @@ if grep -Fq '%txt' "$TEX_FILE"; then # if %txt was inserted to start with text m
     sed -i -E '/^[ \t]*\\displaystyle$/d' "$TEX_TEXT"
     sed -i -E '/^[ \t]*\%txt$/d' "$TEX_TEXT" # remove "%txt" from the branch although not so useful
     #konsole --noclose -e bash -c "less -R '$TEX_TEXT'"
-    pdflatex -interaction=nonstopmode "$TEX_TEXT"
+    pdflatex -interaction=batchmode "$TEX_TEXT" > /dev/null 2>&1
     
 elif grep -Fq '%minted' "$TEX_FILE" ; then # If %minted was written
     TEX_MINTED="$TEX_FILE" # branch to code mode
@@ -17,19 +17,20 @@ elif grep -Fq '%minted' "$TEX_FILE" ; then # If %minted was written
     sed -z -E 's/\(\n[ \t]+/\begin{lstlisting}\n/g' -i "$TEX_MINTED"
     sed -i 's/\\)/\\end{lstlisting}/g' "$TEX_MINTED"
     sed -i 's/0.999\\maxdimen/15cm/g' "$TEX_MINTED" #ajust sheet size
-    pdflatex -interaction=nonstopmode "$TEX_MINTED"
+    pdflatex -interaction=batchmode "$TEX_MINTED" > /dev/null 2>&1
     
-elif grep -Fq '%%%' "$TEX_FILE"; then #If %%% was written to go to error-display mode
+else
+    # if no option were detected and no compilation yet, try to compile the original file
+    pdflatex -interaction=batchmode "$TEX_FILE" > /dev/null 2>&1
+fi
+    pdflatex_status=$?
+
+if grep -Fq '%%%' "$TEX_FILE"; then #If %%% was written to go to error-display mode
     pdflatex -interaction=nonstopmode "$TEX_FILE"
     if grep -Fq '%%%%' "$TEX_FILE"; then
         konsole --noclose -e bash -c "less -R '$TEX_FILE'"
     fi
-
-else
-    # if no option were detected and no compilation yet, try to compile the original file
-    pdflatex -interaction=nonstopmode "$TEX_FILE"
-
-    pdflatex_status=$?
+fi
 
 if [ "$pdflatex_status" -ne 0 ]; then # If the compilation contained errors and no option was input
     echo "Last valid version of the formula :" > "$TEMP_VALID_TEX"
