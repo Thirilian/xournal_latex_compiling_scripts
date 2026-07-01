@@ -23,7 +23,8 @@ else
     # if no option were detected and no compilation yet, try to compile the original file
     pdflatex -interaction=batchmode "$TEX_FILE" > /dev/null 2>&1
 fi
-    pdflatex_status=$?
+
+    pdflatex_status=$? #get the output of the last command that was run
 
 if grep -Fq '%%%' "$TEX_FILE"; then #If %%% was written to go to error-display mode
     pdflatex -interaction=nonstopmode "$TEX_FILE"
