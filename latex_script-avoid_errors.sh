@@ -27,7 +27,15 @@ elif grep -Fq '%F' "$TEX_FILE" && [ "$pdflatex_status" -ne 0 ]; then #If %F was 
 
     # Compile the temporary file ignoring errors
     pdflatex -interaction=nonstopmode -jobname=last_valid "$TEMP_VALID_TEX"
-
+    
+elif grep -Fq '%txt' "$TEX_FILE"; then # if %txt was inserted to start with text mode, 
+    TEX_TEXT="$TEX_FILE" # Branch to text mode related variable
+    sed -i -E '/^[ \t]*\\\($/d; /^[ \t]*\\\)$/d' "$TEX_TEXT" # remove \( \displaystyle \) to prevent math mode
+    sed -i -E '/^[ \t]*\\displaystyle$/d' "$TEX_TEXT"
+    sed -i -E '/^[ \t]*\%txt$/d' "$TEX_TEXT" # remove "%txt" from the branch although not so useful
+    #konsole --noclose -e bash -c "less -R '$TEX_TEXT'"
+    pdflatex -interaction=nonstopmode "$TEX_TEXT"
+    
     # if no PDF output was produced, notify the user and compile a message instead of the formula
     if [ ! -f "${TEX_FILE%.tex}.pdf" ]; then
         FALLBACK_TEX="$(mktemp --suffix=.tex)"
